@@ -421,7 +421,7 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
 
         // checklist for new courses - see also course_checklist in local
         // Here all we need is a link to it as a simple reminder (not compulsory), or else exclude
-        $view->output_course_checklist($course_id_second);
+		// $view->output_course_checklist($course_id_second);
         
         $view->output_course_element_form_end($nextstageurl);
 
