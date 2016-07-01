@@ -24,7 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function local_manualrollover_extends_settings_navigation($settingsnav, $context) {
+function local_manualrollover_extend_settings_navigation($settingsnav, $context) {
     global $CFG, $PAGE;
  
     // Only add this settings item on non-site course pages.
