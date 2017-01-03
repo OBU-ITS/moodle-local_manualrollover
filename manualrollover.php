@@ -58,7 +58,7 @@ $context = context_course::instance($course_first->id, MUST_EXIST);
 // Courses are referred to as 'first' and 'second', with the rollover direction depending on the type (from or to)
 $rollover_type = optional_param('rtype', '', PARAM_TEXT);
 if (!$rollover_type) {
-    $rollover_type = "from";
+    $rollover_type = "to";
 }
 
 $PAGE->set_course($course_first);
