@@ -395,6 +395,12 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                             $checked = "";
                         }
                     }
+                    // Don't include the 'official' module attendance activity
+                    if ($settingsegments[0] == "attendance") {
+                        if (strtolower($task->get_name()) == 'module attendance') {
+                            $checked = "";
+                        }
+                    }
                    
                     // Version of line for debugging purposes but NB that this will BREAK the actual rollover
                     // $item_name = $task->get_name() . " (" . $settingsegments[0] . ")";
@@ -609,7 +615,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $bc->execute_plan();
     $bc->destroy();
 
-    // Check backup succeded
+    // Check backup succeeded
     $tempdestination = $CFG->tempdir . '/backup/' . $backupid;
     if (!file_exists($tempdestination) || !is_dir($tempdestination)) {
         return array(false, 'Error backing up old course');
