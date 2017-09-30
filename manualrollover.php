@@ -551,9 +551,15 @@ function process_form_3(view_manualrollover $view, $rtype='from') {
 function backup_restore_course($oldid, $newid, $excludeactivities) {
     global $CFG,
            $DB,
-           $USER;
+           $USER,
+		   $SESSION;
 
-    // General options
+    // Check for hyperactive fingers
+	if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
+        return array(false, 'Rollover was completed');
+    }
+
+	// General options
     $options = array(
         'activities' => 1,
         'blocks' => 1,
@@ -660,6 +666,11 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 
     $rc->destroy();
     fulldelete($tempdestination);
+
+	// Save details to mitigate against repeated clicks
+	$SESSION->local_manualrollover_oldid = $oldid;
+	$SESSION->local_manualrollover_newid = $newid;
+	$SESSION->local_manualrollover_time = time();
 
     return array(true, '');
 }
