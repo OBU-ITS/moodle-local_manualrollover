@@ -385,6 +385,10 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                     if ($settingsegments[0] == "turnitintool") {
                         $checked = "";
                     }
+                    // TurnitinTwo assignments also excluded specifically (never rollover) : JC 16/08/2018
+                    if ($settingsegments[0] == "turnitintooltwo") {
+                        $checked = "";
+                    }
                     // voicepodcaster (and anything voicepod) excluded because they appear to break the backup/restore
                     if (strpos($settingsegments[0], "voicepod") === 0) {
                         $checked = "";
