@@ -20,9 +20,11 @@
  *
  * @package    manualrollover
  * @category   local
- * @copyright  2015, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @copyright  2019, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+$string['privacy:metadata'] = 'The Manual Rollover plugin does not store any personal data.';
 
 $string['pluginname'] = 'Course rollover';
 $string['manualrollover'] = 'Course rollover';

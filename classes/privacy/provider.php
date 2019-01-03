@@ -16,25 +16,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
+ * Manual rollover - Privacy Subsystem implementation
  *
  * @package    manualrollover
  * @category   local
- * @copyright  2019, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @author     Peter Welham
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_manualrollover\privacy;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2019010200;
+// Privacy Subsystem implementing null_provider
+class provider implements \core_privacy\local\metadata\null_provider {
 
-$plugin->requires = 2012120301;//Optional - minimum version number of Moodle that this plugin requires
-//(Moodle 1.9 = 2007101509; Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.4 = 2012120301)
-
-$plugin->component = 'local_manualrollover'; // Full name of the plugin (used for diagnostics): plugintype_pluginname
-
-$plugin->maturity = MATURITY_STABLE;//Optional - how stable the plugin is:
-//MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC, MATURITY_STABLE (Moodle 2.0 and above)
-
-$plugin->release = 'v1.2.3';//Optional - Human-readable version name
-?>
+    /**
+     * Get the language string identifier with the component's language
+     * file to explain why this plugin stores no data.
+     *
+     * @return  string
+     */
+    public static function get_reason() : string {
+        return 'privacy:metadata';
+    }
+}
