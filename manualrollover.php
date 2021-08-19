@@ -344,7 +344,7 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
             $tasksettings = $task->get_settings();
                         
             if ($tasksettings) {
-            
+  
                 // Send all the tasks to the form to check (human) on inclusion/exclusion
                 // but don't bother with some which can't be excluded (such as root_task)
             
@@ -376,9 +376,19 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         if ((strpos(strtolower($task->get_name()),'news forum') !== false)) {
                             $checked = "";
                         }
+                    } 
+		    // "Announcements Forum" is the new news forum so exclude that as well : JC 20210819	
+                    if ($settingsegments[0] == "forum") {
+                        if ((strpos(strtolower($task->get_name()),'announcements') !== false)) {
+                            $checked = "";
+                        }
                     }                    
                     // Assignments excluded (as they should be created afresh with new dates etc)
                     if ($settingsegments[0] == "assign") {
+                        $checked = "";
+                    }
+                    // LTIs excluded (as Zoom & Panopto permissions don't work) : JC 20210819
+                    if ($settingsegments[0] == "lti") {
                         $checked = "";
                     }
                     // Turn it in assignments also excluded specifically (never rollover)
