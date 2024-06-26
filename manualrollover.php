@@ -414,10 +414,10 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         }
                     }
                     // Don't include the 'official' module attendance activity
-                    if ($settingsegments[0] == "attendance") {
-                        if (strtolower($task->get_name()) == 'module attendance') {
-                            $checked = "";
-                        }
+                    if ($settingsegments[0] == 'attendance') {
+                        //    if (strtolower($task->get_name()) == 'module attendance') { Simply uncheck all attendance activities rather than relying on their name. JC 20240626
+                        $checked = '';
+                        //    }
                     }
 
                     // Version of line for debugging purposes but NB that this will BREAK the actual rollover
