@@ -680,15 +680,8 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
         }
     }
 
-    try {
-        $rc->execute_plan();
-
-        $rc->destroy();
-    }
-    catch (Exception $e) {
-        var_dump($e);
-        die();
-    }
+    $rc->execute_plan();
+    $rc->destroy();
     fulldelete($tempdestination);
 
 	// Save details to mitigate against repeated clicks
