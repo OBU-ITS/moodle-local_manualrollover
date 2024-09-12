@@ -646,7 +646,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Perform restoration
-    $rc = new restore_controller($backupid, $newid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+    $rc = new \local_manualrollover\restore\restore_obu_controller($backupid, $newid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
 
     // Set general options
     foreach ($options as $name => $value) {
@@ -681,7 +681,6 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     $rc->execute_plan();
-
     $rc->destroy();
     fulldelete($tempdestination);
 

@@ -26,15 +26,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024062600;
+$plugin->component = 'local_manualrollover';
+$plugin->version = 2024090602;
+$plugin->requires = 2012120301;
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = 'v1.3.0';
+$plugin->dependencies = array(
+    'local_obu_group_manager' => 2024081202
+);
 
-$plugin->requires = 2012120301;//Optional - minimum version number of Moodle that this plugin requires
-//(Moodle 1.9 = 2007101509; Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.4 = 2012120301)
-
-$plugin->component = 'local_manualrollover'; // Full name of the plugin (used for diagnostics): plugintype_pluginname
-
-$plugin->maturity = MATURITY_STABLE;//Optional - how stable the plugin is:
-//MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC, MATURITY_STABLE (Moodle 2.0 and above)
-
-$plugin->release = 'v1.2.6';//Optional - Human-readable version name
-?>
