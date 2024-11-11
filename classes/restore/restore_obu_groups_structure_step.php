@@ -22,11 +22,11 @@ class restore_obu_groups_structure_step extends restore_groups_structure_step {
     }
 
     public function process_grouping($data) {
-        $dataobj = (object)$data;
-
-        if (isset($dataobj->idnumber) and local_obu_group_manager_is_system_grouping($dataobj->idnumber)) {
-            return;
-        }
+//        $dataobj = (object)$data;
+//
+//        if (isset($dataobj->idnumber) and local_obu_group_manager_is_system_grouping($dataobj->idnumber)) {
+//            return;
+//        }
 
         parent::process_grouping($data);
     }

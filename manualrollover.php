@@ -573,7 +573,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 		   $SESSION;
 
     // Check for hyperactive fingers
-	if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
+	if (property_exists($SESSION, 'local_manualrollover_oldid') && ($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
         return array(false, 'Rollover was completed');
     }
 
