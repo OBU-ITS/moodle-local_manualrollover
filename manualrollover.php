@@ -351,18 +351,18 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                 $settingtaskincluded = $tasksettings[0];
                 $settingsegments = explode('_', $settingtaskincluded->get_name());
 
-                if ($task->get_name() != "root_task") {
+                if ($task->get_name() != 'root_task') {
 
                     $settingsegments = explode('_', $settingtaskincluded->get_name());
 
-                    $checked = "checked";
+                    $checked = 'checked';
 
                     // Pages are used for module guides - don't by default rollover these but do rollover other forms of page
-                    if ($settingsegments[0] == "page") {
+                    if ($settingsegments[0] == 'page') {
                         if ((strpos(strtolower($task->get_name()),'module guide') !== false)
                             || (strpos(strtolower($task->get_name()),'module description') !== false)) {
 
-                            $checked = "";
+                            $checked = '';
                         }
                     }
                     // Don't rollover forums (they will need new content)
@@ -372,28 +372,28 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         $checked = "";
                     }
                      */
-                    if ($settingsegments[0] == "forum") {
+                    if ($settingsegments[0] == 'forum') {
                         if ((strpos(strtolower($task->get_name()),'news forum') !== false)) {
-                            $checked = "";
+                            $checked = '';
                         }
                     }
 		    // "Announcements Forum" is the new news forum so exclude that as well : JC 20210819
-                    if ($settingsegments[0] == "forum") {
+                    if ($settingsegments[0] == 'forum') {
                         if ((strpos(strtolower($task->get_name()),'announcements') !== false)) {
-                            $checked = "";
+                            $checked = '';
                         }
                     }
                     // Assignments excluded (as they should be created afresh with new dates etc)
-                    if ($settingsegments[0] == "assign") {
-                        $checked = "";
+                    if ($settingsegments[0] == 'assign') {
+                        $checked = '';
                     }
                     // LTIs excluded (as Zoom & Panopto permissions don't work) : JC 20210819
-                    if ($settingsegments[0] == "lti") {
-                        $checked = "";
+                    if ($settingsegments[0] == 'lti') {
+                        $checked = 'checked';
                     }
                     // Turn it in assignments also excluded specifically (never rollover)
-                    if ($settingsegments[0] == "turnitintool") {
-                        $checked = "";
+                    if ($settingsegments[0] == 'turnitintool') {
+                        $checked = '';
                     }
                     // TurnitinTwo assignments also excluded specifically (never rollover) : JC 16/08/2018
                     if ($settingsegments[0] == 'turnitintooltwo') {
@@ -404,13 +404,13 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         $checked = '';
                     }
                     // voicepodcaster (and anything voicepod) excluded because they appear to break the backup/restore
-                    if (strpos($settingsegments[0], "voicepod") === 0) {
-                        $checked = "";
+                    if (strpos($settingsegments[0], 'voicepod') === 0) {
+                        $checked = '';
                     }
                     // Include most feedbacks, including module evaluation (18/04/2024)
-                    if ($settingsegments[0] == "feedback") {
+                    if ($settingsegments[0] == 'feedback') {
                         if (strpos(strtolower($task->get_name()),'module evaluation') !== false) {
-                            $checked = "checked";
+                            $checked = 'checked';
                         }
                     }
                     // Don't include the 'official' module attendance activity
