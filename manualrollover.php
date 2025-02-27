@@ -409,9 +409,7 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                     }
                     // Include most feedbacks, including module evaluation (18/04/2024)
                     if ($settingsegments[0] == 'feedback') {
-                        if (strpos(strtolower($task->get_name()),'module evaluation') !== false) {
-                            $checked = 'checked';
-                        }
+                        $checked = '';
                     }
                     // Don't include the 'official' module attendance activity
                     if ($settingsegments[0] == 'attendance') {
