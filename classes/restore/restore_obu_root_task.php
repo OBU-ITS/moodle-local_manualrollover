@@ -3,6 +3,7 @@
 namespace local_manualrollover\restore;
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot . '/backup/moodle2/restore_stepslib.php');
 
 class restore_obu_root_task extends \restore_root_task {
     public function build() {
