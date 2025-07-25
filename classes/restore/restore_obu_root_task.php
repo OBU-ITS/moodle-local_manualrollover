@@ -8,6 +8,9 @@ class restore_obu_root_task extends \restore_root_task {
     public function build() {
         global $CFG;
         require_once($CFG->dirroot . '/backup/moodle2/restore_stepslib.php');
+        if (!class_exists('restore_course_sections_structure_step')) {
+            throw new \moodle_exception('restore_course_sections_structure_step class is missing!');
+        }
         // Conditionally create the temp table (can exist from prechecks) and delete old stuff
         $this->add_step(new \restore_create_and_clean_temp_stuff('create_and_clean_temp_stuff'));
 
