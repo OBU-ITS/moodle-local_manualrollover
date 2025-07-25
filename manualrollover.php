@@ -573,11 +573,16 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 		   $SESSION;
 
     // Check for hyperactive fingers
-	if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
+	// if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
+    //     return array(false, 'Rollover was completed');
+    // }
+    if ((($SESSION->local_manualrollover_oldid ?? null) == $oldid) &&
+        (($SESSION->local_manualrollover_newid ?? null) == $newid) &&
+        ((time() - ($SESSION->local_manualrollover_time ?? 0)) < 60)) {
         return array(false, 'Rollover was completed');
     }
 
-	// General options
+    // General options
     $options = array(
         'activities' => 1,
         'blocks' => 1,
@@ -634,7 +639,14 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $backupbasepath = $bc->get_plan()->get_basepath();
 
     $bc->save_controller();
-    $bc->finish_ui();
+    // $bc->finish_ui();
+    try {
+        $bc->finish_ui();
+    } catch (\Throwable $e) {
+        debugging('Rollover failed during finish_ui(): ' . $e->getMessage());
+        debugging($e->getTraceAsString());
+        throw $e;
+    }
 
     $bc->execute_plan();
     $bc->destroy();
