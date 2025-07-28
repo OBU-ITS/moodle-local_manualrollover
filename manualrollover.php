@@ -321,6 +321,8 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
         if ($rtype != 'from') {
              $course_to_use = $course_id_second;
         }
+        // TODO remove after debugging
+        debugging('Current umask: ' . decoct(umask()));
         $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
 
         // Set general options
