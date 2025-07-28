@@ -651,10 +651,14 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $bc->save_controller();
     // $bc->finish_ui();
     // TODO remove after debugging
-    debugging('$CFG->tempdir: ' . $CFG->tempdir);
-    debugging('$CFG->dataroot: ' . $CFG->dataroot);
-    debugging('$bc->get_backupid(): ' . $bc->get_backupid());
-    debugging('Expected backup path: ' . $CFG->tempdir . '/backup/' . $bc->get_backupid());
+    // Debugging before finish_ui().
+    $loggers = $bc->get_logger();
+    if ($loggers instanceof \backup\loggers\file_logger) {
+        debugging('Logger fullpath: ' . $loggers->fullpath);
+        debugging('Logger file exists: ' . (file_exists($loggers->fullpath) ? 'true' : 'false'));
+        debugging('Logger file is writable: ' . (is_writable($loggers->fullpath) ? 'true' : 'false'));
+        debugging('Logger dir is writable: ' . (is_writable(dirname($loggers->fullpath)) ? 'true' : 'false'));
+    }
     // TODO remove after debugging
     try {
         $bc->finish_ui();
