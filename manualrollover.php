@@ -608,8 +608,14 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Perform backup
-    // Close session to avoid blocking other requests or interfering with file handles.
+    // Save details to mitigate against repeated clicks *before* session is closed
+    $SESSION->local_manualrollover_oldid = $oldid;
+    $SESSION->local_manualrollover_newid = $newid;
+    $SESSION->local_manualrollover_time = time();
+
+    // Now safe to close the session
     \core\session\manager::write_close();
+
     $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
 
     // Set general options
@@ -705,11 +711,6 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $rc->execute_plan();
     $rc->destroy();
     fulldelete($tempdestination);
-
-	// Save details to mitigate against repeated clicks
-	$SESSION->local_manualrollover_oldid = $oldid;
-	$SESSION->local_manualrollover_newid = $newid;
-	$SESSION->local_manualrollover_time = time();
 
     return array(true, '');
 }
