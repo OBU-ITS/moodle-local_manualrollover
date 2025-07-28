@@ -645,7 +645,8 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     // TODO remove after debugging
     debugging('$CFG->tempdir: ' . ($CFG->tempdir ?? '(not set)'));
     debugging('$CFG->dataroot: ' . $CFG->dataroot);
-    debugging('Calculated backup tempdir: ' . \backup_controller::get_tempdir_name($bc->get_backupid()));
+    debugging('Calculated backup tempdir: ' . $bc->get_backuptemp_directory());
+    debugging('Backup ID: ' . $bc->get_backupid());
     // TODO remove after debugging
     try {
         $bc->finish_ui();
