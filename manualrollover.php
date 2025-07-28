@@ -608,6 +608,8 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Perform backup
+    // Close session to avoid blocking other requests or interfering with file handles.
+    \core\session\manager::write_close();
     $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
 
     // Set general options
