@@ -653,11 +653,25 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     // TODO remove after debugging
     // Debugging before finish_ui().
     $loggers = $bc->get_logger();
-    if ($loggers instanceof \backup\loggers\file_logger) {
-        debugging('Logger fullpath: ' . $loggers->fullpath);
-        debugging('Logger file exists: ' . (file_exists($loggers->fullpath) ? 'true' : 'false'));
-        debugging('Logger file is writable: ' . (is_writable($loggers->fullpath) ? 'true' : 'false'));
-        debugging('Logger dir is writable: ' . (is_writable(dirname($loggers->fullpath)) ? 'true' : 'false'));
+    debugging('Logger class: ' . get_class($loggers));
+
+    if ($loggers instanceof \backup\loggers\multi_logger) {
+        $ref = new ReflectionObject($loggers);
+        if ($ref->hasProperty('loggers')) {
+            $prop = $ref->getProperty('loggers');
+            $prop->setAccessible(true);
+            $logarray = $prop->getValue($loggers);
+
+            foreach ($logarray as $i => $l) {
+                debugging("Logger[$i] class: " . get_class($l));
+                if ($l instanceof \backup\loggers\file_logger) {
+                    debugging("Logger[$i] fullpath: " . $l->fullpath);
+                    debugging('file_exists: ' . (file_exists($l->fullpath) ? 'true' : 'false'));
+                    debugging('is_writable: ' . (is_writable($l->fullpath) ? 'true' : 'false'));
+                    debugging('dirname is_writable: ' . (is_writable(dirname($l->fullpath)) ? 'true' : 'false'));
+                }
+            }
+        }
     }
     // TODO remove after debugging
     try {
