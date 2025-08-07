@@ -33,6 +33,12 @@ class restore_obu_root_task extends \restore_root_task {
         // Unconditionally, create all the needed users calculated in the previous step
         $this->add_step(new \restore_create_included_users('create_users'));
 
+        // Standard section restore (Moodle's logic)
+        $this->add_step(new \restore_section_structure_step('section_structure', 'sections.xml'));
+
+        // Then force name overwrite with ours
+        $this->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step('overwrite_section_names', 'sections.xml'));
+
         // Unconditionally, load create all the needed groups and groupings
         $this->add_step(new \local_manualrollover\restore\restore_obu_groups_structure_step('create_obu_groups_and_groupings', 'groups.xml'));
 
