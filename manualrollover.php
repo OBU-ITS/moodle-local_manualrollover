@@ -321,7 +321,7 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
         if ($rtype != 'from') {
              $course_to_use = $course_id_second;
         }
-        $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
+        $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
 
         // Set general options
         foreach ($options as $name => $value) {
@@ -601,7 +601,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Perform backup
-    $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
+    $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
 
     // Set general options
     foreach ($options as $name => $value) {
@@ -632,6 +632,16 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 
     $backupid = $bc->get_backupid();
     $backupbasepath = $bc->get_plan()->get_basepath();
+
+    $bc->get_plan()->get_setting('users')->set_value(0);
+    $bc->get_plan()->get_setting('anonymize')->set_value(0);
+    $bc->get_plan()->get_setting('role_assignments')->set_value(0);
+    $bc->get_plan()->get_setting('activities')->set_value(1);
+    $bc->get_plan()->get_setting('blocks')->set_value(1);
+    $bc->get_plan()->get_setting('filters')->set_value(1);
+    $bc->get_plan()->get_setting('files')->set_value(1);
+    $bc->get_plan()->get_setting('customfields')->set_value(1);
+    // Add/adjust any others we rely on
 
     $bc->save_controller();
     // Part of JC fix for 4.5
