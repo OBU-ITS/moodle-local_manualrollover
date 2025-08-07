@@ -630,17 +630,36 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
         }
     }
 
+    // Helper: set a plan setting if possible; ignore if it's locked or missing.
+    $tryset = function(backup_plan $plan, string $name, $value): void {
+        if (!$plan->setting_exists($name)) {
+            return;
+        }
+        $s = $plan->get_setting($name);
+        if (!$s) {
+            return;
+        }
+        try {
+            // On 4.5 this will throw base_setting_exception if locked-by-permission.
+            $s->set_value($value);
+        } catch (\base_setting_exception $e) {
+            // Do nothing — locked settings keep their site-enforced values.
+        }
+    };
+
+
     $backupid = $bc->get_backupid();
     $backupbasepath = $bc->get_plan()->get_basepath();
 
-    $bc->get_plan()->get_setting('users')->set_value(0);
-    $bc->get_plan()->get_setting('anonymize')->set_value(0);
-    $bc->get_plan()->get_setting('role_assignments')->set_value(0);
-    $bc->get_plan()->get_setting('activities')->set_value(1);
-    $bc->get_plan()->get_setting('blocks')->set_value(1);
-    $bc->get_plan()->get_setting('filters')->set_value(1);
-    if ($s = $bc->get_plan()->get_setting('files'))        { $s->set_value(1); }
-    if ($s = $bc->get_plan()->get_setting('customfields')) { $s->set_value(1); }    // Add/adjust any others we rely on
+    $plan = $bc->get_plan();
+    $tryset($plan, 'users', 0);
+    $tryset($plan, 'anonymize', 0);
+    $tryset($plan, 'role_assignments', 0);
+    $tryset($plan, 'activities', 1);
+    $tryset($plan, 'blocks', 1);
+    $tryset($plan, 'filters', 1);
+    $tryset($plan, 'files', 1);
+    $tryset($plan, 'customfields', 1); // add others you rely on
 
     $bc->save_controller();
     // Part of JC fix for 4.5
