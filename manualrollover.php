@@ -634,7 +634,8 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $backupbasepath = $bc->get_plan()->get_basepath();
 
     $bc->save_controller();
-    $bc->finish_ui();
+    // Part of JC fix for 4.5
+    // $bc->finish_ui();
 
     $bc->execute_plan();
     $bc->destroy();
