@@ -37,7 +37,9 @@ class restore_obu_root_task extends \restore_root_task {
         $this->add_step(new \restore_section_structure_step('section_structure', 'sections.xml'));
 
         // Then force name overwrite with ours
-        $this->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step('overwrite_section_names', 'sections.xml'));
+        $this->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
+            'overwrite_section_names'
+        ));
 
         // Unconditionally, load create all the needed groups and groupings
         $this->add_step(new \local_manualrollover\restore\restore_obu_groups_structure_step('create_obu_groups_and_groupings', 'groups.xml'));

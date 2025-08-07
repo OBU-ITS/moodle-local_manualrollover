@@ -1,42 +1,54 @@
 <?php
-
 namespace local_manualrollover\restore;
 
-use restore_structure_step;
-use restore_path_element;
-use context_course;
-use moodle_exception;
-use stdClass;
+defined('MOODLE_INTERNAL') || die();
 
-class restore_obu_overwrite_section_names_step extends restore_structure_step {
-
-    protected function define_structure() {
-        $paths = [];
-        $paths[] = new restore_path_element('section', '/section');
-        return $paths;
-    }
-
-    protected function process_section($data) {
+class restore_obu_overwrite_section_names_step extends \restore_execution_step {
+    protected function define_execution() {
         global $DB;
 
-        $data = (object)$data;
-        $courseid = $this->get_courseid();
-        $sectionnum = $data->number;
+        $courseid   = $this->get_courseid();
+        $basepath   = $this->task->get_basepath(); // temp working dir for this restore
+        $sectionsdir = $basepath . '/sections';
 
-        // Do not proceed unless name is set.
-        if (!isset($data->name)) {
+        if (!is_dir($sectionsdir)) {
+            // Backup layout without per-section dirs: nothing to do.
             return;
         }
 
-        // Update section name in the destination course.
-        $conditions = ['course' => $courseid, 'section' => $sectionnum];
-        if ($DB->record_exists('course_sections', $conditions)) {
-            $DB->set_field('course_sections', 'name', $data->name, $conditions);
+        $dh = @opendir($sectionsdir);
+        if (!$dh) {
+            return;
         }
-    }
 
-    protected function after_execute() {
-        // Add related files for section summaries if needed.
-        $this->add_related_files('course', 'section', 'course_sections');
+        while (($entry = readdir($dh)) !== false) {
+            if (!preg_match('/^section_(\d+)$/', $entry, $m)) {
+                continue;
+            }
+            $xmlfile = $sectionsdir . '/' . $entry . '/section.xml';
+            if (!is_readable($xmlfile)) {
+                continue;
+            }
+
+            $xml = @simplexml_load_file($xmlfile);
+            if ($xml === false) {
+                continue;
+            }
+
+            // Old backups typically have <number> and <name>.
+            $number = isset($xml->number) ? (int)$xml->number : null;
+            $name   = isset($xml->name)   ? trim((string)$xml->name) : '';
+
+            if ($number === null || $name === '') {
+                continue;
+            }
+
+            // Overwrite destination section name by section number.
+            $conditions = ['course' => $courseid, 'section' => $number];
+            if ($DB->record_exists('course_sections', $conditions)) {
+                $DB->set_field('course_sections', 'name', $name, $conditions);
+            }
+        }
+        closedir($dh);
     }
 }
