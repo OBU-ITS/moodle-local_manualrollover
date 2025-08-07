@@ -652,6 +652,16 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $backupbasepath = $bc->get_plan()->get_basepath();
 
     $plan = $bc->get_plan();
+    // --- Debug: list all available restore settings and lock status ---
+    if (debugging()) {
+        foreach ($plan->get_settings() as $s) {
+            $name = $s->get_name();
+            $locked = method_exists($s, 'is_locked')
+                ? ($s->is_locked() ? 'locked' : 'unlocked')
+                : 'unknown';
+            debugging("Restore setting available: {$name} ({$locked})", DEBUG_DEVELOPER);
+        }
+    }
     $tryset($plan, 'users', 0);
     $tryset($plan, 'anonymize', 0);
     $tryset($plan, 'role_assignments', 0);
@@ -676,6 +686,44 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 
     // Perform restoration
     $rc = new \local_manualrollover\restore\restore_obu_controller($backupid, $newid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+
+    $plan = $rc->get_plan();
+    // --- Debug: list all available restore settings and lock status ---
+    if (debugging()) {
+        foreach ($plan->get_settings() as $s) {
+            $name = $s->get_name();
+            $locked = method_exists($s, 'is_locked')
+                ? ($s->is_locked() ? 'locked' : 'unlocked')
+                : 'unknown';
+            debugging("Restore setting available: {$name} ({$locked})", DEBUG_DEVELOPER);
+        }
+    }
+
+    // Same helper you used for backup:
+    $tryset = function($plan, string $name, $value): void {
+        if (method_exists($plan, 'setting_exists') && !$plan->setting_exists($name)) {
+            return;
+        }
+        $s = $plan->get_setting($name);
+        if (!$s) return;
+        try {
+            $s->set_value($value);
+        } catch (\base_setting_exception $e) {
+            // Minimal debug so we can see what's locked without crashing.
+            debugging("Restore setting '{$name}' is locked; keeping default.", DEBUG_DEVELOPER);
+        }
+    };
+
+    // Use it for the usual suspects (only those that actually exist on your plan will apply):
+    $tryset($plan, 'users', 0);
+    $tryset($plan, 'anonymize', 0);
+    $tryset($plan, 'role_assignments', 0);
+    $tryset($plan, 'activities', 1);
+    $tryset($plan, 'blocks', 1);
+    $tryset($plan, 'filters', 1);
+    $tryset($plan, 'files', 1);
+    $tryset($plan, 'customfields', 1); // add others you rely on
+    // add any others you rely on, guarded as above
 
     // Set general options
     foreach ($options as $name => $value) {
