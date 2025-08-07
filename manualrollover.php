@@ -630,8 +630,22 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
         }
     }
 
+    $backupid = $bc->get_backupid();
+    $backupbasepath = $bc->get_plan()->get_basepath();
+
+    $plan = $bc->get_plan();
+    // --- Debug: list all available backup settings and lock status ---
+    if (debugging()) {
+        foreach ($plan->get_settings() as $s) {
+            $name = $s->get_name();
+            $locked = method_exists($s, 'is_locked')
+                ? ($s->is_locked() ? 'locked' : 'unlocked')
+                : 'unknown';
+            debugging("Backup setting available: {$name} ({$locked})", DEBUG_DEVELOPER);
+        }
+    }
     // Helper: set a plan setting if possible; ignore if it's locked or missing.
-    $tryset = function(backup_plan $plan, string $name, $value): void {
+    $tryset = function(\backup_plan $plan, string $name, $value): void {
         if (!$plan->setting_exists($name)) {
             return;
         }
@@ -647,21 +661,6 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
         }
     };
 
-
-    $backupid = $bc->get_backupid();
-    $backupbasepath = $bc->get_plan()->get_basepath();
-
-    $plan = $bc->get_plan();
-    // --- Debug: list all available restore settings and lock status ---
-    if (debugging()) {
-        foreach ($plan->get_settings() as $s) {
-            $name = $s->get_name();
-            $locked = method_exists($s, 'is_locked')
-                ? ($s->is_locked() ? 'locked' : 'unlocked')
-                : 'unknown';
-            debugging("Restore setting available: {$name} ({$locked})", DEBUG_DEVELOPER);
-        }
-    }
     $tryset($plan, 'users', 0);
     $tryset($plan, 'anonymize', 0);
     $tryset($plan, 'role_assignments', 0);
@@ -700,7 +699,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Same helper you used for backup:
-    $tryset = function($plan, string $name, $value): void {
+    $tryset = function(\restore_plan $plan, string $name, $value): void {
         if (method_exists($plan, 'setting_exists') && !$plan->setting_exists($name)) {
             return;
         }
