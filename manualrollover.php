@@ -633,6 +633,14 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $backupid = $bc->get_backupid();
     $backupbasepath = $bc->get_plan()->get_basepath();
 
+    // Make sure the backuptemp dir for this run exists and is writable
+    $backuptemppath = make_backup_temp_directory($backupid); // creates if missing
+
+    if (!is_dir($backuptemppath) || !is_writable($backuptemppath)) {
+        debugging("Backuptemp path not writable: {$backuptemppath}", DEBUG_DEVELOPER);
+        throw new \moodle_exception('error_writing_file', 'error', '', $backuptemppath);
+    }
+
     $plan = $bc->get_plan();
     // --- Debug: list all available backup settings and lock status ---
     if (debugging()) {
