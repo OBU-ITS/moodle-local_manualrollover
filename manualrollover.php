@@ -639,9 +639,8 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $bc->get_plan()->get_setting('activities')->set_value(1);
     $bc->get_plan()->get_setting('blocks')->set_value(1);
     $bc->get_plan()->get_setting('filters')->set_value(1);
-    $bc->get_plan()->get_setting('files')->set_value(1);
-    $bc->get_plan()->get_setting('customfields')->set_value(1);
-    // Add/adjust any others we rely on
+    if ($s = $bc->get_plan()->get_setting('files'))        { $s->set_value(1); }
+    if ($s = $bc->get_plan()->get_setting('customfields')) { $s->set_value(1); }    // Add/adjust any others we rely on
 
     $bc->save_controller();
     // Part of JC fix for 4.5
