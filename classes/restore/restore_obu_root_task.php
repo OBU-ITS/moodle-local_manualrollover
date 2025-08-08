@@ -33,6 +33,11 @@ class restore_obu_root_task extends \restore_root_task {
         // Unconditionally, create all the needed users calculated in the previous step
         $this->add_step(new \restore_create_included_users('create_users'));
 
+        // Then force name overwrite with ours
+        $this->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
+            'overwrite_section_names'
+        ));
+
         // Unconditionally, load create all the needed groups and groupings
         $this->add_step(new \local_manualrollover\restore\restore_obu_groups_structure_step('create_obu_groups_and_groupings', 'groups.xml'));
 
@@ -57,7 +62,29 @@ class restore_obu_root_task extends \restore_root_task {
         // Unconditionally, create and map all the categories and questions
         $this->add_step(new \restore_create_categories_and_questions('create_categories_and_questions', 'questions.xml'));
 
+        // Do NOT add a sections.xml step anymore — core restores sections from
+        // course/sections/section_*/section.xml in 4.5.
+
+        // Find the core final task and append our overwrite step to it.
+        $final = null;
+        foreach ($this->plan->get_tasks() as $task) {
+            if ($task instanceof \restore_final_task) {
+                $final = $task;
+                break;
+            }
+        }
+        if ($final) {
+            $final->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
+                'overwrite_section_names'
+            ));
+        } else {
+            // Fallback: very old branches — add our own final-like task if needed.
+            if (method_exists($this->plan, 'add_task')) {
+                require_once(__DIR__ . '/restore_obu_final_task.php');
+                $this->plan->add_task(new \local_manualrollover\restore\restore_obu_final_task('obu_final'));
+            }
+        }
         // At the end, mark it as built
-        $this->built = true;
+        $this->built = true;        // At the end, mark it as built
     }
 }

@@ -321,9 +321,7 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
         if ($rtype != 'from') {
              $course_to_use = $course_id_second;
         }
-        // TODO remove after debugging
-        debugging('Current umask: ' . decoct(umask()));
-        $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
+        $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
 
         // Set general options
         foreach ($options as $name => $value) {
@@ -422,9 +420,6 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         //    }
                     }
 
-                    // Version of line for debugging purposes but NB that this will BREAK the actual rollover
-                    // $item_name = $task->get_name() . " (" . $settingsegments[0] . ")";
-                    // Normal version, non-breaking
                     $item_name = $task->get_name();
 
                     $tablefields = array($item_name, $settingsegments[0], $settingtaskincluded->get_name(), $checked);
@@ -575,16 +570,11 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 		   $SESSION;
 
     // Check for hyperactive fingers
-	// if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
-    //     return array(false, 'Rollover was completed');
-    // }
-    if ((($SESSION->local_manualrollover_oldid ?? null) == $oldid) &&
-        (($SESSION->local_manualrollover_newid ?? null) == $newid) &&
-        ((time() - ($SESSION->local_manualrollover_time ?? 0)) < 60)) {
+	if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
         return array(false, 'Rollover was completed');
     }
 
-    // General options
+	// General options
     $options = array(
         'activities' => 1,
         'blocks' => 1,
@@ -608,15 +598,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Perform backup
-    // Save details to mitigate against repeated clicks *before* session is closed
-    $SESSION->local_manualrollover_oldid = $oldid;
-    $SESSION->local_manualrollover_newid = $newid;
-    $SESSION->local_manualrollover_time = time();
-
-    // Now safe to close the session
-    \core\session\manager::write_close();
-
-    $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
+    $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
 
     // Set general options
     foreach ($options as $name => $value) {
@@ -648,39 +630,44 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $backupid = $bc->get_backupid();
     $backupbasepath = $bc->get_plan()->get_basepath();
 
-    $bc->save_controller();
-    // $bc->finish_ui();
-    // TODO remove after debugging
-    // Debugging before finish_ui().
-    $loggers = $bc->get_logger();
-    debugging('Logger class: ' . get_class($loggers));
+    // Make sure the backuptemp dir for this run exists and is writable
+    $backuptemppath = make_backup_temp_directory($backupid); // creates if missing
 
-    if ($loggers instanceof \backup\loggers\multi_logger) {
-        $ref = new ReflectionObject($loggers);
-        if ($ref->hasProperty('loggers')) {
-            $prop = $ref->getProperty('loggers');
-            $prop->setAccessible(true);
-            $logarray = $prop->getValue($loggers);
+    if (!is_dir($backuptemppath) || !is_writable($backuptemppath)) {
+        debugging("Backuptemp path not writable: {$backuptemppath}", DEBUG_DEVELOPER);
+        throw new \moodle_exception('error_writing_file', 'error', '', $backuptemppath);
+    }
 
-            foreach ($logarray as $i => $l) {
-                debugging("Logger[$i] class: " . get_class($l));
-                if ($l instanceof \backup\loggers\file_logger) {
-                    debugging("Logger[$i] fullpath: " . $l->fullpath);
-                    debugging('file_exists: ' . (file_exists($l->fullpath) ? 'true' : 'false'));
-                    debugging('is_writable: ' . (is_writable($l->fullpath) ? 'true' : 'false'));
-                    debugging('dirname is_writable: ' . (is_writable(dirname($l->fullpath)) ? 'true' : 'false'));
-                }
-            }
+    $plan = $bc->get_plan();
+    // Helper: set a plan setting if possible; ignore if it's locked or missing.
+    $tryset = function(\backup_plan $plan, string $name, $value): void {
+        if (!$plan->setting_exists($name)) {
+            return;
         }
-    }
-    // TODO remove after debugging
-    try {
-        $bc->finish_ui();
-    } catch (\Throwable $e) {
-        debugging('Rollover failed during finish_ui(): ' . $e->getMessage());
-        debugging($e->getTraceAsString());
-        throw $e;
-    }
+        $s = $plan->get_setting($name);
+        if (!$s) {
+            return;
+        }
+        try {
+            // On 4.5 this will throw base_setting_exception if locked-by-permission.
+            $s->set_value($value);
+        } catch (\base_setting_exception $e) {
+            // Do nothing — locked settings keep their site-enforced values.
+        }
+    };
+
+    $tryset($plan, 'users', 0);
+    $tryset($plan, 'anonymize', 0);
+    $tryset($plan, 'role_assignments', 0);
+    $tryset($plan, 'activities', 1);
+    $tryset($plan, 'blocks', 1);
+    $tryset($plan, 'filters', 1);
+    $tryset($plan, 'files', 1);
+    $tryset($plan, 'customfields', 1); // add others you rely on
+
+    $bc->save_controller();
+    // Part of JC fix for 4.5
+    // $bc->finish_ui();
 
     $bc->execute_plan();
     $bc->destroy();
@@ -693,6 +680,33 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 
     // Perform restoration
     $rc = new \local_manualrollover\restore\restore_obu_controller($backupid, $newid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+
+    $plan = $rc->get_plan();
+    // Same helper you used for backup:
+    $tryset = function(\restore_plan $plan, string $name, $value): void {
+        if (method_exists($plan, 'setting_exists') && !$plan->setting_exists($name)) {
+            return;
+        }
+        $s = $plan->get_setting($name);
+        if (!$s) return;
+        try {
+            $s->set_value($value);
+        } catch (\base_setting_exception $e) {
+            // Minimal debug so we can see what's locked without crashing.
+            debugging("Restore setting '{$name}' is locked; keeping default.", DEBUG_DEVELOPER);
+        }
+    };
+
+    // Use it for the usual suspects (only those that actually exist on your plan will apply):
+    $tryset($plan, 'users', 0);
+    $tryset($plan, 'anonymize', 0);
+    $tryset($plan, 'role_assignments', 0);
+    $tryset($plan, 'activities', 1);
+    $tryset($plan, 'blocks', 1);
+    $tryset($plan, 'filters', 1);
+    $tryset($plan, 'files', 1);
+    $tryset($plan, 'customfields', 1); // add others you rely on
+    // add any others you rely on, guarded as above
 
     // Set general options
     foreach ($options as $name => $value) {
@@ -729,6 +743,11 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $rc->execute_plan();
     $rc->destroy();
     fulldelete($tempdestination);
+
+	// Save details to mitigate against repeated clicks
+	$SESSION->local_manualrollover_oldid = $oldid;
+	$SESSION->local_manualrollover_newid = $newid;
+	$SESSION->local_manualrollover_time = time();
 
     return array(true, '');
 }
