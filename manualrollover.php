@@ -420,9 +420,6 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         //    }
                     }
 
-                    // Version of line for debugging purposes but NB that this will BREAK the actual rollover
-                    // $item_name = $task->get_name() . " (" . $settingsegments[0] . ")";
-                    // Normal version, non-breaking
                     $item_name = $task->get_name();
 
                     $tablefields = array($item_name, $settingsegments[0], $settingtaskincluded->get_name(), $checked);
@@ -641,26 +638,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
         throw new \moodle_exception('error_writing_file', 'error', '', $backuptemppath);
     }
 
-    $perms = substr(sprintf('%o', fileperms($backuptemppath)), -4);
-    debugging("Backuptemp dir: {$backuptemppath} owner: " . posix_getpwuid(fileowner($backuptemppath))['name'] . " perms: {$perms}", DEBUG_DEVELOPER);
-
-    $logfile = $backuptemppath . '.log';
-    if (file_exists($logfile)) {
-        $perms = substr(sprintf('%o', fileperms($logfile)), -4);
-        debugging("Log file: {$logfile} owner: " . posix_getpwuid(fileowner($logfile))['name'] . " perms: {$perms}", DEBUG_DEVELOPER);
-    }
-
     $plan = $bc->get_plan();
-    // --- Debug: list all available backup settings and lock status ---
-    if (debugging()) {
-        foreach ($plan->get_settings() as $s) {
-            $name = $s->get_name();
-            $locked = method_exists($s, 'is_locked')
-                ? ($s->is_locked() ? 'locked' : 'unlocked')
-                : 'unknown';
-            debugging("Backup setting available: {$name} ({$locked})", DEBUG_DEVELOPER);
-        }
-    }
     // Helper: set a plan setting if possible; ignore if it's locked or missing.
     $tryset = function(\backup_plan $plan, string $name, $value): void {
         if (!$plan->setting_exists($name)) {
@@ -704,17 +682,6 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $rc = new \local_manualrollover\restore\restore_obu_controller($backupid, $newid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
 
     $plan = $rc->get_plan();
-    // --- Debug: list all available restore settings and lock status ---
-    if (debugging()) {
-        foreach ($plan->get_settings() as $s) {
-            $name = $s->get_name();
-            $locked = method_exists($s, 'is_locked')
-                ? ($s->is_locked() ? 'locked' : 'unlocked')
-                : 'unknown';
-            debugging("Restore setting available: {$name} ({$locked})", DEBUG_DEVELOPER);
-        }
-    }
-
     // Same helper you used for backup:
     $tryset = function(\restore_plan $plan, string $name, $value): void {
         if (method_exists($plan, 'setting_exists') && !$plan->setting_exists($name)) {
