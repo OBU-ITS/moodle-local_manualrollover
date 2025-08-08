@@ -641,6 +641,15 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
         throw new \moodle_exception('error_writing_file', 'error', '', $backuptemppath);
     }
 
+    $perms = substr(sprintf('%o', fileperms($backuptemppath)), -4);
+    debugging("Backuptemp dir: {$backuptemppath} owner: " . posix_getpwuid(fileowner($backuptemppath))['name'] . " perms: {$perms}", DEBUG_DEVELOPER);
+
+    $logfile = $backuptemppath . '.log';
+    if (file_exists($logfile)) {
+        $perms = substr(sprintf('%o', fileperms($logfile)), -4);
+        debugging("Log file: {$logfile} owner: " . posix_getpwuid(fileowner($logfile))['name'] . " perms: {$perms}", DEBUG_DEVELOPER);
+    }
+
     $plan = $bc->get_plan();
     // --- Debug: list all available backup settings and lock status ---
     if (debugging()) {
