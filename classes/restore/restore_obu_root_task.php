@@ -33,9 +33,6 @@ class restore_obu_root_task extends \restore_root_task {
         // Unconditionally, create all the needed users calculated in the previous step
         $this->add_step(new \restore_create_included_users('create_users'));
 
-        // Standard section restore (Moodle's logic)
-        //$this->add_step(new \restore_section_structure_step('section_structure', 'sections.xml'));
-
         // Then force name overwrite with ours
         $this->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
             'overwrite_section_names'
@@ -62,19 +59,16 @@ class restore_obu_root_task extends \restore_root_task {
         // Unconditionally, create and map all the categories and questions
         $this->add_step(new \restore_create_categories_and_questions('create_categories_and_questions', 'questions.xml'));
 
-        // Replace the standard course task with our custom one.
-        $plan = $this->plan;
-        foreach ($plan->get_tasks() as $i => $t) {
-            if ($t instanceof \restore_course_task) {
-                // Preserve the same courseid etc.
-                $custom = new \local_manualrollover\restore\restore_obu_course_task(
-                    $t->get_name(), $t->get_courseid()
-                );
-                $plan->set_task($i, $custom);
-                break;
-            }
-        }
+        // Do NOT add a sections.xml step anymore — core restores sections from
+        // course/sections/section_*/section.xml in 4.5.
+
+        // After all core tasks are done, overwrite section names.
+        $final = $this->plan->get_final_task();
+        $final->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
+            'overwrite_section_names'
+        ));
+
         // At the end, mark it as built
-        $this->built = true;
+        $this->built = true;        // At the end, mark it as built
     }
 }
