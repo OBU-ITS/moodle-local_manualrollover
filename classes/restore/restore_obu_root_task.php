@@ -62,12 +62,25 @@ class restore_obu_root_task extends \restore_root_task {
         // Do NOT add a sections.xml step anymore — core restores sections from
         // course/sections/section_*/section.xml in 4.5.
 
-        // After all core tasks are done, overwrite section names.
-        $final = $this->plan->get_final_task();
-        $final->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
-            'overwrite_section_names'
-        ));
-
+        // Find the core final task and append our overwrite step to it.
+        $final = null;
+        foreach ($this->plan->get_tasks() as $task) {
+            if ($task instanceof \restore_final_task) {
+                $final = $task;
+                break;
+            }
+        }
+        if ($final) {
+            $final->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
+                'overwrite_section_names'
+            ));
+        } else {
+            // Fallback: very old branches — add our own final-like task if needed.
+            if (method_exists($this->plan, 'add_task')) {
+                require_once(__DIR__ . '/restore_obu_final_task.php');
+                $this->plan->add_task(new \local_manualrollover\restore\restore_obu_final_task('obu_final'));
+            }
+        }
         // At the end, mark it as built
         $this->built = true;        // At the end, mark it as built
     }
