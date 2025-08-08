@@ -321,7 +321,7 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
         if ($rtype != 'from') {
              $course_to_use = $course_id_second;
         }
-        $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
+        $bc = new backup_controller(backup::TYPE_1COURSE, $course_to_use, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
 
         // Set general options
         foreach ($options as $name => $value) {
@@ -351,18 +351,18 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                 $settingtaskincluded = $tasksettings[0];
                 $settingsegments = explode('_', $settingtaskincluded->get_name());
 
-                if ($task->get_name() != "root_task") {
+                if ($task->get_name() != 'root_task') {
 
                     $settingsegments = explode('_', $settingtaskincluded->get_name());
 
-                    $checked = "checked";
+                    $checked = 'checked';
 
                     // Pages are used for module guides - don't by default rollover these but do rollover other forms of page
-                    if ($settingsegments[0] == "page") {
+                    if ($settingsegments[0] == 'page') {
                         if ((strpos(strtolower($task->get_name()),'module guide') !== false)
                             || (strpos(strtolower($task->get_name()),'module description') !== false)) {
 
-                            $checked = "";
+                            $checked = '';
                         }
                     }
                     // Don't rollover forums (they will need new content)
@@ -372,28 +372,28 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         $checked = "";
                     }
                      */
-                    if ($settingsegments[0] == "forum") {
+                    if ($settingsegments[0] == 'forum') {
                         if ((strpos(strtolower($task->get_name()),'news forum') !== false)) {
-                            $checked = "";
+                            $checked = '';
                         }
                     }
 		    // "Announcements Forum" is the new news forum so exclude that as well : JC 20210819
-                    if ($settingsegments[0] == "forum") {
+                    if ($settingsegments[0] == 'forum') {
                         if ((strpos(strtolower($task->get_name()),'announcements') !== false)) {
-                            $checked = "";
+                            $checked = '';
                         }
                     }
                     // Assignments excluded (as they should be created afresh with new dates etc)
-                    if ($settingsegments[0] == "assign") {
-                        $checked = "";
+                    if ($settingsegments[0] == 'assign') {
+                        $checked = '';
                     }
                     // LTIs excluded (as Zoom & Panopto permissions don't work) : JC 20210819
-                    if ($settingsegments[0] == "lti") {
-                        $checked = "";
+                    if ($settingsegments[0] == 'lti') {
+                        $checked = 'checked';
                     }
                     // Turn it in assignments also excluded specifically (never rollover)
-                    if ($settingsegments[0] == "turnitintool") {
-                        $checked = "";
+                    if ($settingsegments[0] == 'turnitintool') {
+                        $checked = '';
                     }
                     // TurnitinTwo assignments also excluded specifically (never rollover) : JC 16/08/2018
                     if ($settingsegments[0] == 'turnitintooltwo') {
@@ -404,14 +404,12 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         $checked = '';
                     }
                     // voicepodcaster (and anything voicepod) excluded because they appear to break the backup/restore
-                    if (strpos($settingsegments[0], "voicepod") === 0) {
-                        $checked = "";
+                    if (strpos($settingsegments[0], 'voicepod') === 0) {
+                        $checked = '';
                     }
                     // Include most feedbacks, including module evaluation (18/04/2024)
-                    if ($settingsegments[0] == "feedback") {
-                        if (strpos(strtolower($task->get_name()),'module evaluation') !== false) {
-                            $checked = "checked";
-                        }
+                    if ($settingsegments[0] == 'feedback') {
+                        $checked = '';
                     }
                     // Don't include the 'official' module attendance activity
                     if ($settingsegments[0] == 'attendance') {
@@ -420,9 +418,6 @@ function process_form_2(view_manualrollover $view, $rtype='from') {
                         //    }
                     }
 
-                    // Version of line for debugging purposes but NB that this will BREAK the actual rollover
-                    // $item_name = $task->get_name() . " (" . $settingsegments[0] . ")";
-                    // Normal version, non-breaking
                     $item_name = $task->get_name();
 
                     $tablefields = array($item_name, $settingsegments[0], $settingtaskincluded->get_name(), $checked);
@@ -573,7 +568,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 		   $SESSION;
 
     // Check for hyperactive fingers
-	if (($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
+	if (property_exists($SESSION, 'local_manualrollover_oldid') && ($SESSION->local_manualrollover_oldid == $oldid) && ($SESSION->local_manualrollover_newid == $newid) && (time() - $SESSION->local_manualrollover_time < 60)) {
         return array(false, 'Rollover was completed');
     }
 
@@ -601,7 +596,7 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     }
 
     // Perform backup
-    $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_IMPORT, $USER->id);
+    $bc = new backup_controller(backup::TYPE_1COURSE, $oldid, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
 
     // Set general options
     foreach ($options as $name => $value) {
@@ -633,8 +628,44 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
     $backupid = $bc->get_backupid();
     $backupbasepath = $bc->get_plan()->get_basepath();
 
+    // Make sure the backuptemp dir for this run exists and is writable
+    $backuptemppath = make_backup_temp_directory($backupid); // creates if missing
+
+    if (!is_dir($backuptemppath) || !is_writable($backuptemppath)) {
+        debugging("Backuptemp path not writable: {$backuptemppath}", DEBUG_DEVELOPER);
+        throw new \moodle_exception('error_writing_file', 'error', '', $backuptemppath);
+    }
+
+    $plan = $bc->get_plan();
+    // Helper: set a plan setting if possible; ignore if it's locked or missing.
+    $tryset = function(\backup_plan $plan, string $name, $value): void {
+        if (!$plan->setting_exists($name)) {
+            return;
+        }
+        $s = $plan->get_setting($name);
+        if (!$s) {
+            return;
+        }
+        try {
+            // On 4.5 this will throw base_setting_exception if locked-by-permission.
+            $s->set_value($value);
+        } catch (\base_setting_exception $e) {
+            // Do nothing — locked settings keep their site-enforced values.
+        }
+    };
+
+    $tryset($plan, 'users', 0);
+    $tryset($plan, 'anonymize', 0);
+    $tryset($plan, 'role_assignments', 0);
+    $tryset($plan, 'activities', 1);
+    $tryset($plan, 'blocks', 1);
+    $tryset($plan, 'filters', 1);
+    $tryset($plan, 'files', 1);
+    $tryset($plan, 'customfields', 1); // add others you rely on
+
     $bc->save_controller();
-    $bc->finish_ui();
+    // Part of JC fix for 4.5
+    // $bc->finish_ui();
 
     $bc->execute_plan();
     $bc->destroy();
@@ -647,6 +678,33 @@ function backup_restore_course($oldid, $newid, $excludeactivities) {
 
     // Perform restoration
     $rc = new \local_manualrollover\restore\restore_obu_controller($backupid, $newid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+
+    $plan = $rc->get_plan();
+    // Same helper you used for backup:
+    $tryset = function(\restore_plan $plan, string $name, $value): void {
+        if (method_exists($plan, 'setting_exists') && !$plan->setting_exists($name)) {
+            return;
+        }
+        $s = $plan->get_setting($name);
+        if (!$s) return;
+        try {
+            $s->set_value($value);
+        } catch (\base_setting_exception $e) {
+            // Minimal debug so we can see what's locked without crashing.
+            debugging("Restore setting '{$name}' is locked; keeping default.", DEBUG_DEVELOPER);
+        }
+    };
+
+    // Use it for the usual suspects (only those that actually exist on your plan will apply):
+    $tryset($plan, 'users', 0);
+    $tryset($plan, 'anonymize', 0);
+    $tryset($plan, 'role_assignments', 0);
+    $tryset($plan, 'activities', 1);
+    $tryset($plan, 'blocks', 1);
+    $tryset($plan, 'filters', 1);
+    $tryset($plan, 'files', 1);
+    $tryset($plan, 'customfields', 1); // add others you rely on
+    // add any others you rely on, guarded as above
 
     // Set general options
     foreach ($options as $name => $value) {
