@@ -34,7 +34,7 @@ class restore_obu_root_task extends \restore_root_task {
         $this->add_step(new \restore_create_included_users('create_users'));
 
         // Standard section restore (Moodle's logic)
-        $this->add_step(new \restore_section_structure_step('section_structure', 'sections.xml'));
+        //$this->add_step(new \restore_section_structure_step('section_structure', 'sections.xml'));
 
         // Then force name overwrite with ours
         $this->add_step(new \local_manualrollover\restore\restore_obu_overwrite_section_names_step(
