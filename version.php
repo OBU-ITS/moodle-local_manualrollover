@@ -27,10 +27,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_manualrollover';
-$plugin->version = 2025080806;
+$plugin->version = 2025081100;
 $plugin->requires = 2012120301;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v1.4.0';
+$plugin->release = 'v1.4.1';
 $plugin->dependencies = array(
     'local_obu_group_manager' => 2024081202
 );
