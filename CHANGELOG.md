@@ -5,7 +5,7 @@
 
 ---
 
-## v1.5.0.0 – Minor Change
+## 1.5.0.0 – Minor Change
 **Date:** 2025-09-09  
 **Highlights:**
 - Removing use of deprecated <b>print_error</b> function, replacing with Moodle exception.
