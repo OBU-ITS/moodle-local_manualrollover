@@ -42,7 +42,7 @@ if (empty($id_first)) {
 if (!empty($id_first)) {
     $params = array('id' => $id_first);
 } else {
-    print_error('unspecifycourseid', 'error');
+    throw new \moodle_exception('unspecifycourseid', 'error');
 }
 
 $course_first = $DB->get_record('course', $params, '*', MUST_EXIST);
